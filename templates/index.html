@@ -2,22 +2,184 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Codeforces Tag Analyzer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Codeforces Analyzer</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #f8f9fa, #e7ecf2);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .hero {
+      text-align: center;
+      padding: 5rem 1rem 3rem;
+    }
+
+    .hero h1 {
+      font-size: 3rem;
+      font-weight: bold;
+      color: #202866;
+    }
+
+    .hero p {
+      font-size: 1.2rem;
+      color: #444;
+      margin-top: 0.8rem;
+    }
+
+    .input-area {
+      max-width: 500px;
+      margin: 2rem auto;
+    }
+
+    .input-area input {
+      text-align: center;
+    }
+
+    .btn-analyze {
+      background-color: #2979ff;
+      color: white;
+      font-weight: 500;
+    }
+
+    .feature-section {
+      padding: 3rem 1rem;
+    }
+
+    .feature-box {
+      text-align: center;
+      padding: 2rem 1rem;
+      background: white;
+      border-radius: 1rem;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+      transition: transform 0.3s ease;
+      min-height: 200px;
+    }
+
+    .feature-box:hover {
+      transform: translateY(-5px);
+    }
+
+    .feature-icon {
+      font-size: 2.4rem;
+      margin-bottom: 1rem;
+    }
+
+    footer {
+      padding: 2rem;
+      text-align: center;
+      font-size: 0.9rem;
+      color: #777;
+    }
+
+   /* Loading Overlay */
+    #loading-overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(255,255,255,0.9);
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      display: none;
+    }
+
+    .spinner-border {
+      width: 3rem;
+      height: 3rem;
+      color: #2979ff;
+      margin-bottom: 1rem;
+    }
+
+    .loading-text {
+      font-size: 1.2rem;
+      color: #333;
+      font-weight: 500;
+    }
+
+  </style>
 </head>
 <body>
-<div class="container mt-5">
-  <h2>Codeforces Tag Analyzer</h2>
-  {% if error %}
-    <div class="alert alert-danger">{{ error }}</div>
-  {% endif %}
-  <form method="POST">
-    <div class="mb-3">
-      <label for="handle" class="form-label">Codeforces Handle</label>
-      <input type="text" class="form-control" id="handle" name="handle" required>
+  <div class="container">
+    <section class="hero" data-aos="fade-down">
+      <h1>
+        <img src="https://img.icons8.com/?size=100&id=jldAN67IAsrW&format=png&color=000000" style="height: 40px; vertical-align: middle;"> Codeforces Analyzer
+      </h1>
+      <p>Analyze your problem-solving skills and get a personalized roadmap to improvement.</p>
+
+      <form method="POST" class="input-area" data-aos="zoom-in" onsubmit="showLoading()">
+        {% if error %}
+        <div class="alert alert-danger">{{ error }}</div>
+        {% endif %}
+        <input type="text" class="form-control mb-3" name="handle" placeholder="Enter your Codeforces handle" required>
+        <button type="submit" class="btn btn-analyze w-100">Analyze</button>
+      </form>
+    </section>
+
+    <section class="feature-section">
+      <div class="row g-4">
+        <div class="col-md-4" data-aos="fade-up">
+          <div class="feature-box">
+            <div class="feature-icon">🔎</div>
+            <h5>Step 1: Enter Handle</h5>
+            <p>Provide your Codeforces handle to begin the analysis.</p>
+          </div>
+        </div>
+        <div class="col-md-4" data-aos="fade-up" data-aos-delay="100">
+          <div class="feature-box">
+            <div class="feature-icon">📊</div>
+            <h5>Step 2: Analyze Stats</h5>
+            <p>We display your tag-wise problem-solving performance.</p>
+          </div>
+        </div>
+        <div class="col-md-4" data-aos="fade-up" data-aos-delay="200">
+          <div class="feature-box">
+            <div class="feature-icon">📄</div>
+            <h5>Step 3: Get PDF Plan</h5>
+            <p>Receive an AI-powered downloadable personalized training plan.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script src="https://unpkg.com/lottie-web@5.12.0/build/player/lottie.min.js"></script>
+  <!-- Loading Overlay -->
+  <div id="loading-overlay">
+    <div class="spinner-border" role="status"></div>
+    <div class="loading-text text-center">
+    Getting stats...<br>
+    Analyzing your handle.<br>
+    <small>This may take up to 1 minute...</small>
+  </div>
+  <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1050">
+  <div id="errorToast" class="toast align-items-center text-white bg-danger border-0" role="alert">
+    <div class="d-flex">
+      <div class="toast-body">
+        {{ error }}
+      </div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
     </div>
-    <button type="submit" class="btn btn-primary">Analyze</button>
-  </form>
+  </div>
 </div>
+
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+  <script>
+    AOS.init();
+    
+    function showLoading() {
+      document.getElementById('loading-overlay').style.display = 'flex';
+    }
+  </script>
+  
 </body>
 </html>

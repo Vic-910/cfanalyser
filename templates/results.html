@@ -1,73 +1,151 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-bs-theme="light">
 <head>
   <meta charset="UTF-8">
-  <title>Tag Stats for {{ handle }}</title>
+  <title>Statistics for {{ handle }}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    body {
+      background-color: #f8f9fa;
+    }
+    .badge-fixed {
+      min-width: 70px;
+      display: inline-block;
+      font-size: 0.95rem;
+      padding: 6px 12px;
+    }
+    .table thead th {
+      background-color: #343a40;
+      color: white;
+    }
+    .table-hover tbody tr:hover {
+      background-color: #f1f1f1;
+    }
+    .rounded-shadow {
+      border-radius: 10px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+  </style>
 </head>
 <body>
 <div class="container mt-5">
-  <h2>Statistics for {{ handle }}</h2>
+  <h2 class="text-center mb-4" data-aos="zoom-in">📊 Statistics for <strong>{{ handle }}</strong></h2>
 
   <!-- Tag Stats Table -->
-  <table class="table table-striped">
-    <thead>
-      <tr>
-        <th>Tag</th>
-        <th>Attempted</th>
-        <th>Solved</th>
-        <th>Success Rate</th>
-        <th>Avg Rating</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for stat in tag_stats %}
-      <tr>
-        <td>{{ stat.tag }}</td>
-        <td>{{ stat.attempted }}</td>
-        <td>{{ stat.solved }}</td>
-        <td>{{ '{:.0%}'.format(stat.rate) }}</td>
-        <td>{{ stat.avg_rating }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+  <div class="table-responsive mb-5" data-aos="fade-up">
+    <table class="table table-bordered table-hover align-middle text-center rounded-shadow bg-white">
+      <thead>
+        <tr class="text-uppercase">
+          <th class="py-3">Tag</th>
+          <th class="py-3">Attempted</th>
+          <th class="py-3">Solved</th>
+          <th class="py-3">Success Rate</th>
+          <th class="py-3">Avg Rating</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for stat in tag_stats %}
+        <tr>
+          <td class="fw-semibold text-start ps-4">{{ stat.tag }}</td>
+          <td><span class="badge bg-primary badge-fixed">{{ stat.attempted }}</span></td>
+          <td><span class="badge bg-success badge-fixed">{{ stat.solved }}</span></td>
+          <td><span class="badge bg-warning text-dark badge-fixed">{{ '{:.0%}'.format(stat.rate) }}</span></td>
+          <td><span class="badge bg-info text-dark badge-fixed">{{ stat.avg_rating }}</span></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 
   <!-- Weak Tags -->
-  <h4>Weakest Tags</h4>
-  <ul>
-    {% for wt in weak_tags %}
-      <li>{{ wt.tag }} — {{ '{:.0%}'.format(wt.rate) }} ({{ wt.attempted }} attempts)</li>
-    {% endfor %}
-  </ul>
+  <div class="mb-5" data-aos="fade-right">
+    <h4 class="mb-3">🚩 Weakest Tags</h4>
+    <ul class="list-group">
+      {% for wt in weak_tags %}
+      <li class="list-group-item d-flex justify-content-between align-items-center">
+        {{ wt.tag }}
+        <span class="badge bg-danger rounded-pill">{{ '{:.0%}'.format(wt.rate) }} ({{ wt.attempted }} attempts)</span>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
 
   <!-- Suggestions -->
   {% if suggestions %}
-  <h4>Suggested Unsolved Problems</h4>
-  <ul>
-    {% for p in suggestions %}
-      <li>
+  <div class="mb-5" data-aos="fade-left">
+    <h4 class="mb-3">🧠 Suggested Unsolved Problems</h4>
+    <ul class="list-group">
+      {% for p in suggestions %}
+      <li class="list-group-item">
         <a href="https://codeforces.com/problemset/problem/{{ p.contestId }}/{{ p.index }}" target="_blank">
           {{ p.name }}
-        </a>
-        <br>
-        Tags: {{ p.tags | join(', ') }} |
-        Rating: <strong>{{ p.rating if p.rating else 'N/A' }}</strong>
+        </a><br>
+        <small>Tags: {{ p.tags | join(', ') }} | Rating: <strong>{{ p.rating if p.rating else 'N/A' }}</strong></small>
       </li>
-    {% endfor %}
-  </ul>
+      {% endfor %}
+    </ul>
+  </div>
   {% endif %}
 
-  <!-- Gemini Training Plan -->
-{% if training_plan %}
-<h4>📘 Personalized Training Plan</h4>
-<div class="alert alert-success px-4 py-3">
-  {{ training_plan | safe }}
-</div>
-{% endif %}
+  <!-- Training Plan -->
+  {% if training_plan %}
+  <div class="mb-5" data-aos="fade-up">
+    <h4>📘 Personalized Training Plan</h4>
+    <button class="btn btn-outline-primary mb-3" onclick="downloadPDF()">⬇ Download as PDF</button>
+    <div id="plan-content" class="alert alert-secondary px-4 py-3 rounded">
+      {{ training_plan | safe }}
+    </div>
+  </div>
+  {% endif %}
 
-
-  <a href="/" class="btn btn-secondary mt-3">Try Another Handle</a>
+  <!-- Back Button -->
+  <div class="text-center mb-5">
+    <a href="/" class="btn btn-secondary">🔁 Try Another Handle</a>
+  </div>
 </div>
+
+<!-- Scripts -->
+<script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+  AOS.init();
+
+  function downloadPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({
+      unit: 'pt',
+      format: 'a4',
+      lineHeight: 1.6
+    });
+
+    const content = document.getElementById("plan-content").innerText;
+
+    const margin = 40;
+    const pageHeight = doc.internal.pageSize.height;
+    const textWidth = doc.internal.pageSize.width - margin * 2;
+    let y = margin;
+
+    doc.setFont("Helvetica", "normal");
+    doc.setFontSize(12);
+
+    const lines = doc.splitTextToSize(content, textWidth);
+    lines.forEach(line => {
+      if (y + 20 > pageHeight - margin) {
+        doc.addPage();
+        y = margin;
+      }
+      doc.text(line, margin, y);
+      y += 20;
+    });
+
+    doc.save("training_plan.pdf");
+  }
+</script>
+
 </body>
 </html>

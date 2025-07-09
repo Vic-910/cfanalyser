@@ -26,8 +26,11 @@ def home():
         data = response.json()
 
         if data.get('status') != 'OK':
-            error_msg = data.get('comment', 'Unknown error from Codeforces API.')
-            return render_template('index.html', error=f"API error: {error_msg}")
+            comment = data.get('comment', '').lower()
+            if 'not found' in comment:
+                return render_template('index.html', error="User not found. Please check the handle and try again.")
+            else:
+                return render_template('index.html', error="Something went wrong while fetching data. Please try again later.")
 
         submissions = data['result']
         attempted, solved = set(), set()
@@ -145,5 +148,6 @@ Respond in structured markdown.
     return render_template('index.html')
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 8000))
-    app.run(host='0.0.0.0', port=port)
+    '''port = int(os.environ.get('PORT', 8000))
+    app.run(host='0.0.0.0', port=port)'''
+    app.run(debug=True)
